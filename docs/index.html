@@ -1,0 +1,129 @@
+html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Daily Diaper Deals Australia</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f5f5f5;
+        }
+        .header {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .deal { 
+            background: white;
+            border-radius: 10px;
+            margin: 15px 0; 
+            padding: 20px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .store-coles { border-left: 5px solid #e60000; }
+        .store-woolworths { border-left: 5px solid #00a651; }
+        .store-aldi { border-left: 5px solid #ff6600; }
+        .price { 
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #e60000; 
+            margin: 10px 0;
+        }
+        .special { 
+            background: #ffeb3b; 
+            padding: 5px 10px; 
+            border-radius: 5px; 
+            display: inline-block;
+            margin: 5px 0;
+        }
+        .store-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .product-name {
+            font-size: 16px;
+            color: #555;
+            margin: 5px 0;
+        }
+        .view-deal {
+            background: #007cba;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .no-deals {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+            color: #666;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🍼 Daily Diaper Deals Australia</h1>
+        <p>Automatically updated daily with the latest deals from Coles, Woolworths & Aldi</p>
+    </div>
+    
+    <div id="deals-container" class="loading">
+        <p>Loading today's deals...</p>
+    </div>
+
+    <script>
+        fetch('latest_deals.json')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('deals-container');
+                
+                if (!data.deals || data.deals.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-deals">
+                            <h3>No special deals found today</h3>
+                            <p>Check back tomorrow for new deals!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = `<p style="text-align: center; color: #666;">Last updated: ${new Date(data.date).toLocaleDateString('en-AU')}</p>`;
+                
+                data.deals.forEach(deal => {
+                    html += `
+                        <div class="deal store-${deal.store.toLowerCase()}">
+                            <div class="store-name">${deal.store}</div>
+                            <div class="product-name">${deal.product}</div>
+                            <div class="price">${deal.price}</div>
+                            <div class="special">${deal.special}</div>
+                            <a href="${deal.url}" target="_blank" class="view-deal">View Deal →</a>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+            })
+            .catch(error => {
+                document.getElementById('deals-container').innerHTML = `
+                    <div class="no-deals">
+                        <h3>Unable to load deals right now</h3>
+                        <p>Please try refreshing the page in a few minutes.</p>
+                    </div>
+                `;
+            });
+    </script>
+</body>
+</html>
