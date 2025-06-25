@@ -5,13 +5,18 @@ on:
     - cron: '0 22 * * *'  # Run daily at 10 PM UTC (8 AM AEST)
   workflow_dispatch:  # Allow manual runs
 
+permissions:
+  contents: write  # This is crucial!
+
 jobs:
   check-deals:
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -29,10 +34,22 @@ jobs:
         RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
       run: python deal_finder.py
     
+    - name: Check if files changed
+      id: verify-changed-files
+      run: |
+        if git diff --quiet docs/latest_deals.json; then
+          echo "No changes detected"
+          echo "changed=false" >> $GITHUB_OUTPUT
+        else
+          echo "Changes detected"
+          echo "changed=true" >> $GITHUB_OUTPUT
+        fi
+    
     - name: Commit and push changes
+      if: steps.verify-changed-files.outputs.changed == 'true'
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action Bot"
         git add docs/latest_deals.json
-        git diff --staged --quiet || git commit -m "📊 Update daily deals - $(date +'%Y-%m-%d')"
+        git commit -m "📊 Update daily deals - $(date +'%Y-%m-%d %H:%M')"
         git push
