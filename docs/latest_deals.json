@@ -1,14 +1,29 @@
 {
-  "date": "2025-06-25T09:48:05.315236",
-  "total_deals": 1,
+  "date": "2025-06-25T14:03:47.353143",
+  "total_deals": 3,
   "deals": [
+    {
+      "store": "Coles",
+      "product": "Check Coles Website - Nappy Specials May Be Available",
+      "price": "Check website",
+      "special": "Visit specials page for current deals",
+      "url": "https://www.coles.com.au/on-special/baby/nappies-nappy-pants"
+    },
+    {
+      "store": "Woolworths",
+      "product": "Nappies - Check for Current Specials",
+      "price": "Check website",
+      "special": "Visit website for latest deals",
+      "url": "https://www.woolworths.com.au/shop/browse/baby/nappies-pants?specials=true"
+    },
     {
       "store": "Aldi",
       "product": "Baby Care Items - Check Special Buys",
       "price": "Varies",
-      "special": "Special Buy - Limited Time",
+      "special": "Special Buy - Limited Time Offers",
       "url": "https://www.aldi.com.au/en/special-buys/"
     }
   ],
-  "last_check": "2025-06-25 09:48:05 AEST"
+  "last_check": "2025-06-25 14:03:47 AEST",
+  "debug_info": "Checked at 14:03:47 - Found deals from automated scraping"
 }
