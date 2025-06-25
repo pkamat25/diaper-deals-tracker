@@ -80,7 +80,7 @@ def check_coles_deals():
                     continue
         
         # Method 2: Look for common diaper brands in discount context
-        brand_keywords = ['huggies', 'Rascals', 'babylove', 'tooshies', 'Millie Moon','Little One's']
+        brand_keywords = ['huggies', 'Rascals', 'babylove', 'tooshies', 'Millie Moon','Little One']
         discount_keywords = ['special', 'save', 'was $', 'down down', '%', 'half price','online only','LOWER SHELF PRICE']
         
         for brand in brand_keywords:
