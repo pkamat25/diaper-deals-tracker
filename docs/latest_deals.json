@@ -1,20 +1,34 @@
 {
-  "date": "2025-06-25T14:03:47.353143",
-  "total_deals": 3,
+  "date": "2025-06-25T14:21:08.870611",
+  "total_deals": 5,
   "deals": [
     {
       "store": "Coles",
-      "product": "Check Coles Website - Nappy Specials May Be Available",
-      "price": "Check website",
-      "special": "Visit specials page for current deals",
+      "product": "Huggies Ultimate Nappies (Various Sizes)",
+      "price": "$29.00",
+      "special": "Save $10.00 (was $39.00)",
+      "url": "https://www.coles.com.au/on-special/baby/nappies-nappy-pants"
+    },
+    {
+      "store": "Coles",
+      "product": "Premium Nappies Special",
+      "price": "$21.50",
+      "special": "Save $9.50 (was $31.00)",
+      "url": "https://www.coles.com.au/on-special/baby/nappies-nappy-pants"
+    },
+    {
+      "store": "Coles",
+      "product": "Nappies Value Pack",
+      "price": "$17.00",
+      "special": "Save $5.00 (was $22.00)",
       "url": "https://www.coles.com.au/on-special/baby/nappies-nappy-pants"
     },
     {
       "store": "Woolworths",
-      "product": "Nappies - Check for Current Specials",
-      "price": "Check website",
-      "special": "Visit website for latest deals",
-      "url": "https://www.woolworths.com.au/shop/browse/baby/nappies-pants?specials=true"
+      "product": "Nappies & Baby Care - Check Current Specials",
+      "price": "Various deals available",
+      "special": "Weekly specials on major brands",
+      "url": "https://www.woolworths.com.au/shop/browse/baby/nappies-pants"
     },
     {
       "store": "Aldi",
@@ -24,6 +38,6 @@
       "url": "https://www.aldi.com.au/en/special-buys/"
     }
   ],
-  "last_check": "2025-06-25 14:03:47 AEST",
-  "debug_info": "Checked at 14:03:47 - Found deals from automated scraping"
+  "last_check": "2025-06-25 14:21:08 AEST",
+  "debug_info": "Checked at 14:21:08 - Found deals from automated scraping"
 }
