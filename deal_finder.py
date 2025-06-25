@@ -80,8 +80,8 @@ def check_coles_deals():
                     continue
         
         # Method 2: Look for common diaper brands in discount context
-        brand_keywords = ['huggies', 'pampers', 'babylove', 'tooshies', 'napp']
-        discount_keywords = ['special', 'save', 'was $', 'down down', '%', 'half price','online only']
+        brand_keywords = ['huggies', 'Rascals', 'babylove', 'tooshies', 'Millie Moon','Little One's']
+        discount_keywords = ['special', 'save', 'was $', 'down down', '%', 'half price','online only','LOWER SHELF PRICE']
         
         for brand in brand_keywords:
             brand_mentions = soup.find_all(text=lambda text: text and brand.lower() in text.lower())
@@ -133,7 +133,7 @@ def check_woolworths_deals():
     
     try:
         # Use Woolworths specials page
-        url = "https://www.woolworths.com.au/shop/browse/baby/nappies-pants?specials=true"
+        url = "https://www.woolworths.com.au/shop/browse/baby/nappies"
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
