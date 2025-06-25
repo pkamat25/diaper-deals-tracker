@@ -1,27 +1,5 @@
 {
-  "date": "2025-06-25T10:00:00",
-  "total_deals": 3,
-  "deals": [
-    {
-      "store": "Coles",
-      "product": "Huggies Ultimate Nappies Size 4 (52 pack)",
-      "price": "$19.50",
-      "special": "Half Price - Save $19.50",
-      "url": "https://www.coles.com.au"
-    },
-    {
-      "store": "Woolworths", 
-      "product": "Pampers Baby Dry Size 3 (64 pack)",
-      "price": "$22.00",
-      "special": "Save $8",
-      "url": "https://www.woolworths.com.au"
-    },
-    {
-      "store": "Aldi",
-      "product": "Mamia Ultra Dry Nappies Size 2",
-      "price": "$6.99",
-      "special": "Special Buy",
-      "url": "https://www.aldi.com.au"
-    }
-  ]
+  "date": "2025-06-25T05:34:37.314226",
+  "total_deals": 0,
+  "deals": []
 }
