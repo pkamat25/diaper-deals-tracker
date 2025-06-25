@@ -5,112 +5,172 @@ from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
 import os
+import time
 
 def check_coles_deals():
-    """Check Coles for diaper deals"""
-    print("Checking Coles...")
+    """Check Coles for diaper deals - UPDATED VERSION"""
+    print("Checking Coles specials page...")
     deals = []
     
     try:
-        # Search for nappies/diapers on Coles
-        url = "https://www.coles.com.au/search?q=nappies"
+        # Use the correct Coles specials page URL
+        url = "https://www.coles.com.au/on-special/baby/nappies-nappy-pants"
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
         
-        response = requests.get(url, headers=headers, timeout=10)
+        print(f"Fetching: {url}")
+        response = requests.get(url, headers=headers, timeout=15)
+        print(f"Response status: {response.status_code}")
+        
+        if response.status_code != 200:
+            print(f"Bad response code: {response.status_code}")
+            return deals
+            
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        # Look for product tiles with special offers
-        products = soup.find_all('section', {'data-testid': 'product-tile'})
+        # Look for any element containing "SPECIAL" and price information
+        special_indicators = soup.find_all(text=lambda text: text and 'SPECIAL' in text.upper())
+        save_indicators = soup.find_all(text=lambda text: text and 'Save $' in text)
         
-        for product in products[:10]:  # Check first 10 products
-            try:
-                name_element = product.find('h3')
-                price_element = product.find('span', class_='price')
-                special_element = product.find('span', class_='special') or product.find('div', class_='special-badge')
-                link_element = product.find('a')
-                
-                if name_element and price_element:
-                    name = name_element.get_text().strip()
-                    price = price_element.get_text().strip()
-                    
-                    # Only include if there's a special offer or it's a good brand
-                    if (special_element or 
-                        any(brand in name.lower() for brand in ['huggies', 'pampers', 'babylove', 'tooshies'])):
+        print(f"Found {len(special_indicators)} SPECIAL indicators")
+        print(f"Found {len(save_indicators)} Save indicators")
+        
+        # Method 1: Look for price patterns in the text
+        page_text = soup.get_text()
+        lines = page_text.split('\n')
+        
+        current_deal = {}
+        for i, line in enumerate(lines):
+            line = line.strip()
+            
+            # Look for price patterns like "$29.00"
+            if line.startswith('$') and '.' in line and len(line) < 10:
+                try:
+                    price = float(line.replace('$', ''))
+                    if price > 5 and price < 100:  # Reasonable diaper price range
                         
-                        special_text = special_element.get_text().strip() if special_element else "Regular Price"
-                        link = "https://www.coles.com.au" + link_element['href'] if link_element and link_element.get('href') else "https://www.coles.com.au"
+                        # Look for "Save" information nearby
+                        context_lines = lines[max(0, i-3):i+4]
+                        save_info = ""
+                        was_price = ""
                         
-                        deals.append({
-                            'store': 'Coles',
-                            'product': name,
-                            'price': price,
-                            'special': special_text,
-                            'url': link
-                        })
-            except Exception as e:
-                continue
-                
+                        for context_line in context_lines:
+                            if 'Save $' in context_line:
+                                save_info = context_line.strip()
+                            if context_line.startswith('Was $'):
+                                was_price = context_line.strip()
+                        
+                        if save_info or was_price:  # Only include if there's a discount
+                            special_text = f"{save_info} {was_price}".strip()
+                            if not special_text:
+                                special_text = "Special Price"
+                                
+                            deals.append({
+                                'store': 'Coles',
+                                'product': f'Nappies Special Deal',  # Generic since we can't extract specific product names reliably
+                                'price': line,
+                                'special': special_text,
+                                'url': url
+                            })
+                            
+                            print(f"Found deal: {line} - {special_text}")
+                            
+                except ValueError:
+                    continue
+        
+        # Method 2: Look for common diaper brands in discount context
+        brand_keywords = ['huggies', 'pampers', 'babylove', 'tooshies', 'napp']
+        discount_keywords = ['special', 'save', 'was $', 'down down', '%', 'half price','online only']
+        
+        for brand in brand_keywords:
+            brand_mentions = soup.find_all(text=lambda text: text and brand.lower() in text.lower())
+            for mention in brand_mentions:
+                # Check if there's discount language nearby
+                parent = mention.parent if mention.parent else None
+                if parent:
+                    parent_text = parent.get_text().lower()
+                    if any(keyword in parent_text for keyword in discount_keywords):
+                        # Try to find price in the same area
+                        price_match = None
+                        for sibling in parent.find_all(text=True):
+                            if sibling.strip().startswith('$') and '.' in sibling:
+                                price_match = sibling.strip()
+                                break
+                        
+                        if price_match:
+                            deals.append({
+                                'store': 'Coles',
+                                'product': f'{brand.title()} Nappies (Special)',
+                                'price': price_match,
+                                'special': 'Special Offer',
+                                'url': url
+                            })
+                            print(f"Found brand deal: {brand} - {price_match}")
+        
+        # Remove duplicates based on price
+        seen_prices = set()
+        unique_deals = []
+        for deal in deals:
+            if deal['price'] not in seen_prices:
+                seen_prices.add(deal['price'])
+                unique_deals.append(deal)
+        
+        deals = unique_deals[:5]  # Limit to 5 deals
+        
     except Exception as e:
         print(f"Error checking Coles: {e}")
+        import traceback
+        traceback.print_exc()
     
-    print(f"Found {len(deals)} Coles deals")
+    print(f"✅ Found {len(deals)} Coles deals")
     return deals
 
 def check_woolworths_deals():
-    """Check Woolworths for diaper deals"""
+    """Check Woolworths for diaper deals - IMPROVED VERSION"""
     print("Checking Woolworths...")
     deals = []
     
     try:
-        url = "https://www.woolworths.com.au/shop/search/products?searchTerm=nappies"
+        # Use Woolworths specials page
+        url = "https://www.woolworths.com.au/shop/browse/baby/nappies-pants?specials=true"
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
         
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, headers=headers, timeout=15)
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        # Look for product tiles with special pricing
-        products = soup.find_all('div', {'data-testid': 'product-tile'})
+        # Look for special/discount indicators
+        special_elements = soup.find_all(text=lambda text: text and any(word in text.lower() for word in ['special', 'save', 'was $', '%']))
         
-        for product in products[:10]:  # Check first 10 products
-            try:
-                name_element = product.find('h3')
-                price_element = product.find('span', class_='primary')
-                special_element = product.find('div', class_='special-badge') or product.find('span', class_='was')
-                link_element = product.find('a')
-                
-                if name_element and price_element:
-                    name = name_element.get_text().strip()
-                    price = price_element.get_text().strip()
-                    
-                    # Only include if there's a special offer or it's a good brand
-                    if (special_element or 
-                        any(brand in name.lower() for brand in ['huggies', 'pampers', 'babylove', 'tooshies'])):
-                        
-                        special_text = special_element.get_text().strip() if special_element else "Regular Price"
-                        link = "https://www.woolworths.com.au" + link_element['href'] if link_element and link_element.get('href') else "https://www.woolworths.com.au"
-                        
+        # Simple extraction - look for price patterns near special indicators
+        if special_elements:
+            page_text = soup.get_text()
+            lines = page_text.split('\n')
+            
+            for line in lines:
+                line = line.strip()
+                if ('$' in line and 'save' in line.lower()) or ('$' in line and 'was $' in line.lower()):
+                    if any(brand in line.lower() for brand in ['huggies', 'pampers', 'babylove', 'napp']):
                         deals.append({
                             'store': 'Woolworths',
-                            'product': name,
-                            'price': price,
-                            'special': special_text,
-                            'url': link
+                            'product': 'Nappies Special Deal',
+                            'price': 'Check website',
+                            'special': line,
+                            'url': url
                         })
-            except Exception as e:
-                continue
-                
+                        if len(deals) >= 3:  # Limit to 3 deals
+                            break
+        
     except Exception as e:
         print(f"Error checking Woolworths: {e}")
     
-    print(f"Found {len(deals)} Woolworths deals")
+    print(f"✅ Found {len(deals)} Woolworths deals")
     return deals
 
 def check_aldi_deals():
-    """Check Aldi Special Buys for diapers"""
+    """Check Aldi Special Buys for diapers - IMPROVED"""
     print("Checking Aldi...")
     deals = []
     
@@ -120,38 +180,25 @@ def check_aldi_deals():
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
         
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, headers=headers, timeout=15)
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        # Look for baby/diaper related items in special buys
-        products = soup.find_all('div', class_='box--content')
-        
-        for product in products:
-            try:
-                title_element = product.find('h3') or product.find('h2')
-                price_element = product.find('span', class_='box--price')
-                
-                if title_element:
-                    title = title_element.get_text().strip()
-                    
-                    # Check if it's diaper/baby related
-                    if any(word in title.lower() for word in ['napp', 'diaper', 'baby', 'toddler']):
-                        price = price_element.get_text().strip() if price_element else 'Check in store'
-                        
-                        deals.append({
-                            'store': 'Aldi',
-                            'product': title,
-                            'price': price,
-                            'special': 'Special Buy',
-                            'url': 'https://www.aldi.com.au/en/special-buys/'
-                        })
-            except Exception as e:
-                continue
+        # Look for baby/diaper related items
+        page_text = soup.get_text().lower()
+        if any(word in page_text for word in ['napp', 'diaper', 'baby care', 'toddler']):
+            # If we find baby-related content, add a generic Aldi entry
+            deals.append({
+                'store': 'Aldi',
+                'product': 'Baby Care Items - Check Special Buys',
+                'price': 'Varies',
+                'special': 'Special Buy - Limited Time',
+                'url': url
+            })
                 
     except Exception as e:
         print(f"Error checking Aldi: {e}")
     
-    print(f"Found {len(deals)} Aldi deals")
+    print(f"✅ Found {len(deals)} Aldi deals")
     return deals
 
 def send_email_notification(deals):
@@ -170,19 +217,20 @@ def send_email_notification(deals):
         return
     
     # Create email content
-    subject = f"🍼 Daily Diaper Deals - {datetime.now().strftime('%d/%m/%Y')}"
-    body = f"Found {len(deals)} diaper deals today!\n\n"
+    subject = f"🍼 {len(deals)} Diaper Deals Found Today! - {datetime.now().strftime('%d/%m/%Y')}"
+    body = f"Great news! Found {len(deals)} diaper deals today:\n\n"
     
-    for deal in deals:
-        body += f"🏪 {deal['store']}\n"
-        body += f"📦 {deal['product']}\n"
-        body += f"💰 {deal['price']}"
+    for i, deal in enumerate(deals, 1):
+        body += f"{i}. 🏪 {deal['store']}\n"
+        body += f"   📦 {deal['product']}\n"
+        body += f"   💰 {deal['price']}"
         if deal['special'] != 'Regular Price':
             body += f" - {deal['special']}"
-        body += f"\n🔗 {deal['url']}\n\n"
+        body += f"\n   🔗 {deal['url']}\n\n"
     
     body += "Happy shopping! 🛒\n\n"
-    body += "This email was sent automatically by your Diaper Deals Tracker."
+    body += "This email was sent automatically by your Diaper Deals Tracker.\n"
+    body += f"Check your website for the latest deals: https://yourusername.github.io/diaper-deals-tracker"
     
     msg = MIMEText(body)
     msg['Subject'] = subject
@@ -206,7 +254,8 @@ def save_deals_to_file(deals):
     data = {
         'date': datetime.now().isoformat(),
         'total_deals': len(deals),
-        'deals': deals
+        'deals': deals,
+        'last_check': datetime.now().strftime('%Y-%m-%d %H:%M:%S AEST')
     }
     
     with open('docs/latest_deals.json', 'w') as f:
@@ -216,28 +265,36 @@ def save_deals_to_file(deals):
 
 def main():
     """Main function to run daily"""
-    print(f"🔍 Starting diaper deal check - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"🔍 Starting IMPROVED diaper deal check - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("=" * 50)
     
     all_deals = []
     
-    # Check each store
+    # Check each store with delays to be respectful
     all_deals.extend(check_coles_deals())
+    time.sleep(3)  # Wait 3 seconds between requests
+    
     all_deals.extend(check_woolworths_deals())
+    time.sleep(3)
+    
     all_deals.extend(check_aldi_deals())
     
-    print(f"\n📊 SUMMARY: Found {len(all_deals)} total deals")
+    print("=" * 50)
+    print(f"📊 SUMMARY: Found {len(all_deals)} total deals")
     
     if all_deals:
         save_deals_to_file(all_deals)
         send_email_notification(all_deals)
         
-        print("\n🎉 Top 3 deals today:")
-        for i, deal in enumerate(all_deals[:3], 1):
+        print("\n🎉 All deals found today:")
+        for i, deal in enumerate(all_deals, 1):
             print(f"{i}. {deal['store']}: {deal['product']} - {deal['price']}")
+            if deal['special']:
+                print(f"   Special: {deal['special']}")
     else:
         # Still save empty file so website shows "no deals"
         save_deals_to_file([])
-        print("😔 No deals found today - better luck tomorrow!")
+        print("😔 No deals found today - the scraper might need updating")
     
     print("\n✅ Daily check complete!")
     return all_deals
