@@ -1,22 +1,7 @@
 {
-  "date": "2025-06-26T22:24:09.961768",
-  "total_deals": 2,
-  "deals": [
-    {
-      "store": "Various Stores",
-      "product": "<p>Huggies Ultra Dry Nappies Boys Size 3 (6-11kg) 180 Count - One Month Supply. Subscribe &amp; Save discount for Prime members: 15% $47.60 ($0.26 per count) </p>    </div>",
-      "price": "$47.60",
-      "special": "15% off",
-      "url": "https://www.ozbargain.com.au/tag/nappies"
-    },
-    {
-      "store": "Various Stores",
-      "product": "<p>Subscribe &amp; Save: $51.00 $0.35 per count ( $0.35 / count) Huggies Ultra Dry Nappies Boys Size 4 (10-15kg) 144 Count - One Month Supply (Packaging May Vary) </p>    </div>",
-      "price": "$51.00",
-      "special": "Special Deal",
-      "url": "https://www.ozbargain.com.au/tag/nappies"
-    }
-  ],
-  "last_check": "2025-06-26 22:24:09 AEST",
-  "source": "OzBargain.com.au - Real community deals"
+  "date": "2025-06-27T13:40:05.566031",
+  "total_deals": 0,
+  "deals": [],
+  "last_check": "2025-06-27 13:40:05 AEST",
+  "method": "Direct store scraping with crawl4ai"
 }
