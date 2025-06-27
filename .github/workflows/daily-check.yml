@@ -6,7 +6,7 @@ on:
   workflow_dispatch:  # Allow manual runs
 
 permissions:
-  contents: write  # This is crucial!
+  contents: write
 
 jobs:
   check-deals:
@@ -23,9 +23,25 @@ jobs:
       with:
         python-version: '3.9'
     
-    - name: Install dependencies
+    - name: Install system dependencies for crawl4ai
       run: |
-        pip install requests beautifulsoup4
+        sudo apt-get update
+        sudo apt-get install -y chromium-browser
+        
+    - name: Install Python dependencies
+      run: |
+        pip install --upgrade pip
+        pip install crawl4ai
+        
+    - name: Initialize crawl4ai
+      run: |
+        python -c "
+        import asyncio
+        from crawl4ai import AsyncWebCrawler
+        print('Initializing crawl4ai...')
+        asyncio.run(AsyncWebCrawler().warmup())
+        print('crawl4ai ready!')
+        "
     
     - name: Run deal checker
       env:
@@ -51,5 +67,5 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action Bot"
         git add docs/latest_deals.json
-        git commit -m "📊 Update daily deals - $(date +'%Y-%m-%d %H:%M')"
+        git commit -m "🕷️ Update deals - $(date +'%Y-%m-%d %H:%M')"
         git push
