@@ -31,29 +31,34 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install --upgrade pip
-        pip install crawl4ai
+        pip install crawl4ai beautifulsoup4
         
-    - name: Initialize crawl4ai
+    - name: Install Playwright browsers
+      run: |
+        playwright install chromium
+        playwright install-deps
+        
+    - name: Test crawl4ai installation
       run: |
         python -c "
         import asyncio
         from crawl4ai import AsyncWebCrawler
-        print('Testing crawl4ai installation...')
+        print('Testing crawl4ai with browser...')
         
         async def test_crawl4ai():
             try:
                 async with AsyncWebCrawler() as crawler:
-                    print('✅ crawl4ai initialized successfully!')
+                    print('✅ crawl4ai with browser initialized successfully!')
                     return True
             except Exception as e:
-                print(f'❌ crawl4ai test failed: {e}')
+                print(f'❌ crawl4ai browser test failed: {e}')
                 return False
         
         result = asyncio.run(test_crawl4ai())
         if result:
-            print('🚀 crawl4ai ready for use!')
+            print('🚀 crawl4ai ready for scraping!')
         else:
-            print('⚠️ crawl4ai may have issues but will attempt to continue')
+            print('⚠️ crawl4ai may have browser issues')
         "
     
     - name: Run deal checker
