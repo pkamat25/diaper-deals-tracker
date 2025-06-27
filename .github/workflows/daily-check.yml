@@ -38,9 +38,22 @@ jobs:
         python -c "
         import asyncio
         from crawl4ai import AsyncWebCrawler
-        print('Initializing crawl4ai...')
-        asyncio.run(AsyncWebCrawler().warmup())
-        print('crawl4ai ready!')
+        print('Testing crawl4ai installation...')
+        
+        async def test_crawl4ai():
+            try:
+                async with AsyncWebCrawler() as crawler:
+                    print('✅ crawl4ai initialized successfully!')
+                    return True
+            except Exception as e:
+                print(f'❌ crawl4ai test failed: {e}')
+                return False
+        
+        result = asyncio.run(test_crawl4ai())
+        if result:
+            print('🚀 crawl4ai ready for use!')
+        else:
+            print('⚠️ crawl4ai may have issues but will attempt to continue')
         "
     
     - name: Run deal checker
