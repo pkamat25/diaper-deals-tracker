@@ -1,4 +1,4 @@
-name: Daily Diaper Deal Check
+name: Daily Diaper Deal Check 
 
 on:
   schedule:
