@@ -13,10 +13,15 @@ try:
     from crawl4ai.extraction_strategy import CosineStrategy
     CRAWL4AI_AVAILABLE = True
     print("✅ crawl4ai is available")
-except ImportError:
-    print("❌ crawl4ai not installed. Install with: pip install crawl4ai")
+except ImportError as e:
+    print(f"❌ crawl4ai not installed: {e}")
+    print("Install with: pip install crawl4ai")
     CRAWL4AI_AVAILABLE = False
     exit(1)
+except Exception as e:
+    print(f"⚠️ crawl4ai import issue: {e}")
+    print("Will attempt to continue...")
+    CRAWL4AI_AVAILABLE = True
 
 async def get_coles_deals():
     """Get Coles nappy deals using crawl4ai"""
@@ -37,28 +42,21 @@ async def get_coles_deals():
                 print(f"  🎯 Trying: {url}")
                 
                 try:
-                    # Crawl with JavaScript rendering and smart extraction
+                    # Simplified crawl4ai usage - avoid complex strategies that might fail
                     result = await crawler.arun(
                         url=url,
-                        extraction_strategy=CosineStrategy(
-                            semantic_filter="nappies diapers baby specials deals prices save discount half price",
-                            word_count_threshold=5,
-                            max_dist=0.3,
-                            top_k=15
-                        ),
+                        word_count_threshold=10,
+                        bypass_cache=True,
                         js_code=[
                             "window.scrollTo(0, document.body.scrollHeight);",
-                            "await new Promise(resolve => setTimeout(resolve, 3000));",
-                            "window.scrollTo(0, 0);",
-                            "await new Promise(resolve => setTimeout(resolve, 1000));"
+                            "await new Promise(resolve => setTimeout(resolve, 2000));"
                         ],
                         wait_for="body",
-                        delay_before_return_html=4,
-                        bypass_cache=True
+                        delay_before_return_html=3
                     )
                     
                     print(f"  📄 Content length: {len(result.html)} characters")
-                    print(f"  🔍 Extracted items: {len(result.extracted_content) if result.extracted_content else 0}")
+                    print(f"  🔍 Links found: {len(result.links) if hasattr(result, 'links') and result.links else 0}")
                     
                     # Check if we got blocked
                     if "incapsula" in result.html.lower() or "blocked" in result.html.lower():
@@ -66,7 +64,7 @@ async def get_coles_deals():
                         continue
                     
                     # Extract deals from the crawled content
-                    extracted_deals = extract_coles_deals(result.html, result.extracted_content, url)
+                    extracted_deals = extract_coles_deals(result.html, getattr(result, 'extracted_content', None), url)
                     
                     if extracted_deals:
                         print(f"  ✅ Found {len(extracted_deals)} Coles deals!")
@@ -221,26 +219,22 @@ async def get_woolworths_deals():
                 print(f"  🎯 Trying: {url}")
                 
                 try:
+                    # Simplified crawl4ai for Woolworths
                     result = await crawler.arun(
                         url=url,
-                        extraction_strategy=CosineStrategy(
-                            semantic_filter="nappies baby specials deals save discount",
-                            word_count_threshold=5,
-                            max_dist=0.3,
-                            top_k=10
-                        ),
+                        word_count_threshold=10,
+                        bypass_cache=True,
                         js_code=[
                             "window.scrollTo(0, document.body.scrollHeight);",
                             "await new Promise(resolve => setTimeout(resolve, 2000));"
-                        ],
-                        bypass_cache=True
+                        ]
                     )
                     
                     print(f"  📄 Content length: {len(result.html)} characters")
                     
                     if "woolworths" in result.html.lower():
                         # Extract deals using similar logic to Coles
-                        extracted_deals = extract_woolworths_deals(result.html, result.extracted_content, url)
+                        extracted_deals = extract_woolworths_deals(result.html, getattr(result, 'extracted_content', None), url)
                         
                         if extracted_deals:
                             print(f"  ✅ Found {len(extracted_deals)} Woolworths deals!")
@@ -248,6 +242,8 @@ async def get_woolworths_deals():
                             break
                         else:
                             print("  ❌ No specific deals found")
+                    else:
+                        print("  ❌ Woolworths content not detected")
                     
                 except Exception as e:
                     print(f"  ❌ Error crawling {url}: {e}")
