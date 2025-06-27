@@ -1,39 +1,39 @@
 {
-  "date": "2025-06-27T13:54:55.111221",
+  "date": "2025-06-27T22:28:00.232493",
   "total_deals": 7,
   "deals": [
     {
       "store": "Coles",
       "product": "Nappies Special Deal",
-      "price": "$35.00",
+      "price": "$0.43",
       "special": "Save $9.50",
       "url": "https://www.coles.com.au/browse/baby/nappies-nappy-pants/nappies"
     },
     {
       "store": "Coles",
       "product": "Nappies Special Deal",
-      "price": "$0.58",
+      "price": "$0.46",
       "special": "Save $9.50",
       "url": "https://www.coles.com.au/browse/baby/nappies-nappy-pants/nappies"
     },
     {
       "store": "Coles",
       "product": "Nappies Special Deal",
-      "price": "$4.06",
+      "price": "$0.00",
       "special": "Save $9.50",
       "url": "https://www.coles.com.au/browse/baby/nappies-nappy-pants/nappies"
     },
     {
       "store": "Coles",
       "product": "Nappies Special Deal",
-      "price": "$0.63",
+      "price": "$12.00",
       "special": "Save $9.50",
       "url": "https://www.coles.com.au/browse/baby/nappies-nappy-pants/nappies"
     },
     {
       "store": "Coles",
       "product": "Nappies Special Deal",
-      "price": "$0.35",
+      "price": "$0.50",
       "special": "Save $9.50",
       "url": "https://www.coles.com.au/browse/baby/nappies-nappy-pants/nappies"
     },
@@ -52,6 +52,6 @@
       "url": "https://www.woolworths.com.au/shop/browse/baby/nappies-pants"
     }
   ],
-  "last_check": "2025-06-27 13:54:55 AEST",
+  "last_check": "2025-06-27 22:28:00 AEST",
   "method": "Direct store scraping with crawl4ai"
 }
