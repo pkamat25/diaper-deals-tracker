@@ -1,11 +1,11 @@
 {
-  "date": "2025-06-27T22:28:00.232493",
+  "date": "2025-06-28T22:25:21.964606",
   "total_deals": 7,
   "deals": [
     {
       "store": "Coles",
       "product": "Nappies Special Deal",
-      "price": "$0.43",
+      "price": "$5.35",
       "special": "Save $9.50",
       "url": "https://www.coles.com.au/browse/baby/nappies-nappy-pants/nappies"
     },
@@ -19,21 +19,21 @@
     {
       "store": "Coles",
       "product": "Nappies Special Deal",
-      "price": "$0.00",
+      "price": "$0.26",
       "special": "Save $9.50",
       "url": "https://www.coles.com.au/browse/baby/nappies-nappy-pants/nappies"
     },
     {
       "store": "Coles",
       "product": "Nappies Special Deal",
-      "price": "$12.00",
+      "price": "$0.40",
       "special": "Save $9.50",
       "url": "https://www.coles.com.au/browse/baby/nappies-nappy-pants/nappies"
     },
     {
       "store": "Coles",
       "product": "Nappies Special Deal",
-      "price": "$0.50",
+      "price": "$0.43",
       "special": "Save $9.50",
       "url": "https://www.coles.com.au/browse/baby/nappies-nappy-pants/nappies"
     },
@@ -52,6 +52,6 @@
       "url": "https://www.woolworths.com.au/shop/browse/baby/nappies-pants"
     }
   ],
-  "last_check": "2025-06-27 22:28:00 AEST",
+  "last_check": "2025-06-28 22:25:21 AEST",
   "method": "Direct store scraping with crawl4ai"
 }
