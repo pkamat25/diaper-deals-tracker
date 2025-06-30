@@ -1,57 +1,22 @@
 {
-  "date": "2025-06-29T22:25:49.368494",
-  "total_deals": 7,
+  "date": "2025-06-30T01:00:21.966378",
+  "total_deals": 2,
   "deals": [
     {
       "store": "Coles",
-      "product": "Nappies Special Deal",
+      "product": "Nappies Deal",
+      "price": "$12.00",
+      "special": "Special Price",
+      "url": "https://www.coles.com.au/product/babylove-nappy-pants-size-6-(15-25kg)-22-pack-7268680"
+    },
+    {
+      "store": "Coles",
+      "product": "Nappies Deal",
       "price": "$17.50",
-      "special": "Save $9.50",
-      "url": "https://www.coles.com.au/browse/baby/nappies-nappy-pants/nappies"
-    },
-    {
-      "store": "Coles",
-      "product": "Nappies Special Deal",
-      "price": "$0.54",
-      "special": "Save $9.50",
-      "url": "https://www.coles.com.au/browse/baby/nappies-nappy-pants/nappies"
-    },
-    {
-      "store": "Coles",
-      "product": "Nappies Special Deal",
-      "price": "$0.34",
-      "special": "Save $9.50",
-      "url": "https://www.coles.com.au/browse/baby/nappies-nappy-pants/nappies"
-    },
-    {
-      "store": "Coles",
-      "product": "Nappies Special Deal",
-      "price": "$0.61",
-      "special": "Save $9.50",
-      "url": "https://www.coles.com.au/browse/baby/nappies-nappy-pants/nappies"
-    },
-    {
-      "store": "Coles",
-      "product": "Nappies Special Deal",
-      "price": "$0.21",
-      "special": "Save $9.50",
-      "url": "https://www.coles.com.au/browse/baby/nappies-nappy-pants/nappies"
-    },
-    {
-      "store": "Woolworths",
-      "product": "(()=>{\"use strict\";var e={2716:(e,t,r)=>{Object.defineProperty(t,\"__esModule\",{v",
-      "price": "$7.90",
       "special": "Special Price",
-      "url": "https://www.woolworths.com.au/shop/browse/baby/nappies-pants"
-    },
-    {
-      "store": "Woolworths",
-      "product": "Nappies Special",
-      "price": "$0.00",
-      "special": "Special Price",
-      "url": "https://www.woolworths.com.au/shop/browse/baby/nappies-pants"
+      "url": "https://www.coles.com.au/product/rascals-premium-nappies-size-3-(6-11kg)-44-pack-3301138"
     }
   ],
-  "last_check": "2025-06-29 22:25:49 AEST",
-  "method": "Direct store scraping with crawl4ai"
+  "last_check": "2025-06-30 01:00:21 AEST",
+  "method": "Coles-only robots.txt compliant scraping + official sitemaps"
 }
