@@ -1,4 +1,4 @@
-name: Daily Diaper Deal Check 
+name: Daily Diaper Deal Check
 
 on:
   schedule:
@@ -31,7 +31,7 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install --upgrade pip
-        pip install crawl4ai beautifulsoup4
+        pip install crawl4ai beautifulsoup4 requests
         
     - name: Install Playwright browsers
       run: |
