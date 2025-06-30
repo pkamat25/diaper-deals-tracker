@@ -1,22 +1,7 @@
 {
-  "date": "2025-06-30T01:00:21.966378",
-  "total_deals": 2,
-  "deals": [
-    {
-      "store": "Coles",
-      "product": "Nappies Deal",
-      "price": "$12.00",
-      "special": "Special Price",
-      "url": "https://www.coles.com.au/product/babylove-nappy-pants-size-6-(15-25kg)-22-pack-7268680"
-    },
-    {
-      "store": "Coles",
-      "product": "Nappies Deal",
-      "price": "$17.50",
-      "special": "Special Price",
-      "url": "https://www.coles.com.au/product/rascals-premium-nappies-size-3-(6-11kg)-44-pack-3301138"
-    }
-  ],
-  "last_check": "2025-06-30 01:00:21 AEST",
+  "date": "2025-06-30T01:16:35.937977",
+  "total_deals": 0,
+  "deals": [],
+  "last_check": "2025-06-30 01:16:35 AEST",
   "method": "Coles-only robots.txt compliant scraping + official sitemaps"
 }
