@@ -2,7 +2,7 @@ name: Daily Diaper Deal Check
 
 on:
   schedule:
-    - cron: '0 22 * * *'  # Run daily at 10 PM UTC (8 AM AEST)
+    ----------- cron: '0 22 * * *'  # Run daily at 10 PM UTC (8 AM AEST)
   workflow_dispatch:  # Allow manual runs
 
 permissions:
