@@ -81,25 +81,63 @@ def is_valid_nappy_price(price_str):
         return False
 
 def extract_single_product_deal(product_element, base_url):
-    """Extract a single product deal with validation"""
+    """Extract a single product deal with detailed description"""
     try:
-        # Extract product name
-        name_selectors = ['h3', 'h4', '.product-name', '.product-title', '[data-testid="product-title"]']
-        product_name = "Nappies Deal"
+        # Extract product name and description
+        name_selectors = [
+            'h3', 'h4', 
+            '.product-name', '.product-title', 
+            '[data-testid="product-title"]',
+            '[data-testid="product-name"]',
+            '.product-header',
+            'a[title]'  # Sometimes title attribute has full name
+        ]
         
+        product_name = ""
+        product_description = ""
+        
+        # Try to get the most detailed product name
         for selector in name_selectors:
             name_elem = product_element.select_one(selector) if hasattr(product_element, 'select_one') else product_element.find(selector)
             if name_elem:
-                product_name = name_elem.get_text().strip()
-                break
+                if selector == 'a[title]':
+                    product_name = name_elem.get('title', '').strip()
+                else:
+                    product_name = name_elem.get_text().strip()
+                
+                if len(product_name) > 20:  # Prefer longer, more descriptive names
+                    break
+        
+        # If we didn't get a good name, try alternative approaches
+        if len(product_name) < 10:
+            # Look for any text with nappy keywords
+            all_text = product_element.get_text() if hasattr(product_element, 'get_text') else str(product_element)
+            lines = all_text.split('\n')
+            
+            for line in lines:
+                line = line.strip()
+                nappy_keywords = ['napp', 'diaper', 'huggies', 'pampers', 'babylove', 'rascal', 'tooshies']
+                if (any(keyword in line.lower() for keyword in nappy_keywords) and 
+                    len(line) > 10 and len(line) < 200 and
+                    'size' in line.lower()):  # Prefer lines with size info
+                    product_name = line
+                    break
+        
+        # Enhance product name with additional details
+        enhanced_name = enhance_product_description(product_element, product_name)
         
         # Validate it's actually a nappy product
         nappy_keywords = ['napp', 'diaper', 'huggies', 'pampers', 'babylove', 'rascal', 'tooshies']
-        if not any(keyword in product_name.lower() for keyword in nappy_keywords):
+        if not any(keyword in enhanced_name.lower() for keyword in nappy_keywords):
             return None
         
         # Extract price
-        price_selectors = ['.price', '[data-testid="price"]', '.current-price', '.sale-price']
+        price_selectors = [
+            '.price', '[data-testid="price"]', 
+            '.current-price', '.sale-price',
+            '.price-current', '.dollarValue',
+            '[class*="price"]'
+        ]
         price = "Check website"
         
         for selector in price_selectors:
@@ -115,31 +153,39 @@ def extract_single_product_deal(product_element, base_url):
         if not is_valid_nappy_price(price):
             return None
         
-        # Extract special/discount info
-        special_selectors = ['.special', '.discount', '.save', '[data-testid="special"]', '.was-price']
+        # Extract special/discount info with more detail
+        special_selectors = [
+            '.special', '.discount', '.save', 
+            '[data-testid="special"]', '.was-price',
+            '.special-badge', '.promotion',
+            '[class*="special"]', '[class*="save"]'
+        ]
         special = "Special Price"
         
         for selector in special_selectors:
             special_elem = product_element.select_one(selector) if hasattr(product_element, 'select_one') else product_element.find(selector)
             if special_elem:
                 special_text = special_elem.get_text().strip()
-                if len(special_text) < 100:  # Reasonable length
+                if len(special_text) > 3 and len(special_text) < 100:  # Reasonable length
                     special = special_text
                     break
+        
+        # Look for additional promotional text
+        promo_text = extract_promotional_info(product_element)
+        if promo_text and promo_text != special:
+            special = f"{special} - {promo_text}"
         
         # Extract product URL
         product_url = base_url  # Default fallback
         
         # Try to find the specific product link
         if hasattr(product_element, 'get') and product_element.get('href'):
-            # This is already a link element
             href = product_element.get('href')
             if href.startswith('/'):
                 product_url = f"https://www.coles.com.au{href}"
             elif href.startswith('http'):
                 product_url = href
         else:
-            # Look for a link within the product container
             link_elem = product_element.find('a', href=True) if hasattr(product_element, 'find') else None
             if link_elem:
                 href = link_elem.get('href')
@@ -150,9 +196,9 @@ def extract_single_product_deal(product_element, base_url):
         
         return {
             'store': 'Coles',
-            'product': product_name[:100],  # Limit length
+            'product': enhanced_name[:150],  # Allow longer descriptions
             'price': price,
-            'special': special,
+            'special': special[:100],  # Limit special text
             'url': product_url
         }
     
@@ -160,6 +206,141 @@ def extract_single_product_deal(product_element, base_url):
         print(f"      ❌ Error extracting single product: {e}")
     
     return None
+
+def enhance_product_description(product_element, base_name):
+    """Enhance product name with size, brand, and pack information"""
+    try:
+        # Get all text from the product element
+        full_text = product_element.get_text() if hasattr(product_element, 'get_text') else str(product_element)
+        
+        # Look for size information
+        size_patterns = [
+            r'size \d+',
+            r'size [0-6]',
+            r'\d+kg',
+            r'\d+-\d+kg',
+            r'newborn',
+            r'infant',
+            r'toddler'
+        ]
+        
+        size_info = ""
+        for pattern in size_patterns:
+            match = re.search(pattern, full_text.lower())
+            if match:
+                size_info = match.group()
+                break
+        
+        # Look for pack count
+        pack_patterns = [
+            r'\d+ pack',
+            r'\(\d+\)',
+            r'\d+ count',
+            r'\d+pk'
+        ]
+        
+        pack_info = ""
+        for pattern in pack_patterns:
+            match = re.search(pattern, full_text.lower())
+            if match:
+                pack_info = match.group()
+                break
+        
+        # Look for brand (if not already in name)
+        brands = ['huggies', 'pampers', 'babylove', 'rascals', 'tooshies', 'mamia']
+        brand_info = ""
+        
+        for brand in brands:
+            if brand not in base_name.lower() and brand in full_text.lower():
+                brand_info = brand.title()
+                break
+        
+        # Look for product type details
+        product_types = [
+            'ultra dry', 'ultimate', 'baby dry', 'pure care',
+            'cosifit', 'premium', 'classic', 'overnight',
+            'sensitive', 'natural', 'eco'
+        ]
+        
+        type_info = ""
+        for ptype in product_types:
+            if ptype in full_text.lower():
+                type_info = ptype.title()
+                break
+        
+        # Combine information intelligently
+        enhanced_parts = []
+        
+        if brand_info and brand_info.lower() not in base_name.lower():
+            enhanced_parts.append(brand_info)
+        
+        if base_name and 'napp' not in base_name.lower():
+            enhanced_parts.append(base_name)
+        elif not base_name:
+            enhanced_parts.append("Nappies")
+        
+        if type_info and type_info.lower() not in ' '.join(enhanced_parts).lower():
+            enhanced_parts.append(type_info)
+        
+        if size_info:
+            enhanced_parts.append(f"Size {size_info}")
+        
+        if pack_info:
+            enhanced_parts.append(f"({pack_info})")
+        
+        # Join parts intelligently
+        if enhanced_parts:
+            enhanced_name = ' '.join(enhanced_parts)
+            # Clean up the result
+            enhanced_name = re.sub(r'\s+', ' ', enhanced_name)  # Remove extra spaces
+            enhanced_name = enhanced_name.strip()
+            return enhanced_name if len(enhanced_name) > 5 else base_name
+        
+        return base_name if base_name else "Nappies Special"
+        
+    except Exception as e:
+        return base_name if base_name else "Nappies Deal"
+
+def extract_promotional_info(product_element):
+    """Extract additional promotional information"""
+    try:
+        promo_selectors = [
+            '.promotion-text',
+            '.offer-text', 
+            '.badge-text',
+            '[class*="promo"]',
+            '[class*="offer"]',
+            '.stamp-text'
+        ]
+        
+        for selector in promo_selectors:
+            promo_elem = product_element.select_one(selector) if hasattr(product_element, 'select_one') else product_element.find(selector)
+            if promo_elem:
+                promo_text = promo_elem.get_text().strip()
+                if len(promo_text) > 3 and len(promo_text) < 50:
+                    return promo_text
+        
+        # Look for common promotional phrases
+        full_text = product_element.get_text() if hasattr(product_element, 'get_text') else str(product_element)
+        promo_phrases = [
+            r'half price',
+            r'\d+% off',
+            r'buy \d+ get \d+',
+            r'was \$\d+\.\d{2}',
+            r'save \$\d+',
+            r'down down',
+            r'member price'
+        ]
+        
+        for phrase_pattern in promo_phrases:
+            match = re.search(phrase_pattern, full_text.lower())
+            if match:
+                return match.group().title()
+        
+        return ""
+        
+    except Exception as e:
+        return ""
 
 def extract_coles_deals(html_content, extracted_content, base_url):
     """Extract nappy deals from Coles content with better filtering"""
