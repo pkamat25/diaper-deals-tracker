@@ -344,219 +344,7 @@ async def get_coles_deals():
     
     return deals
 
-def extract_woolworths_deals(html_content, extracted_content, base_url):
-    """Extract deals from Woolworths content, avoiding JavaScript code"""
-    deals = []
-    
-    try:
-        print("    🔍 Analyzing Woolworths content...")
-        soup = BeautifulSoup(html_content, 'html.parser')
-        
-        # Remove script tags and style tags to avoid JavaScript content
-        for script in soup(["script", "style"]):
-            script.decompose()
-        
-        # Look for Woolworths product containers
-        product_selectors = [
-            '[data-testid="product-tile"]',
-            '.product-tile',
-            '.product-item',
-            '.shelfProductTile',
-            'article[class*="product"]',
-            '[class*="ProductTile"]'
-        ]
-        
-        products = []
-        for selector in product_selectors:
-            found = soup.select(selector)
-            if found:
-                products = found
-                print(f"    📦 Found {len(products)} Woolworths product containers")
-                break
-        
-        # Filter for nappy-related products only
-        nappy_keywords = ['napp', 'diaper', 'huggies', 'pampers', 'babylove', 'tooshies']
-        nappy_products = []
-        
-        for product in products:
-            try:
-                product_text = product.get_text().lower()
-                if any(keyword in product_text for keyword in nappy_keywords):
-                    nappy_products.append(product)
-            except:
-                continue
-        
-        print(f"    🍼 Found {len(nappy_products)} nappy-related Woolworths products")
-        
-        # Extract deals from nappy products
-        for i, product in enumerate(nappy_products[:5]):  # Limit to 5
-            try:
-                # Extract product name (avoid JavaScript)
-                name_elem = (product.select_one('h3') or 
-                           product.select_one('h4') or
-                           product.select_one('[data-testid="product-title"]') or
-                           product.select_one('.product-title'))
-                
-                if name_elem:
-                    product_name = name_elem.get_text().strip()
-                    
-                    # Clean product name - remove JavaScript patterns
-                    js_indicators = ['function', 'var ', 'object', '=>', '{', '}', 'defineProperty']
-                    if (len(product_name) > 10 and 
-                        not any(js_indicator in product_name for js_indicator in js_indicators)):
-                        
-                        # Extract price
-                        price_elem = (product.select_one('[data-testid="price"]') or
-                                    product.select_one('.price') or
-                                    product.select_one('.primary') or
-                                    product.select_one('[class*="price"]'))
-                        
-                        price = "Check website"
-                        if price_elem:
-                            price_text = price_elem.get_text().strip()
-                            price_match = re.search(r'\$\d+\.\d{2}', price_text)
-                            if price_match and is_valid_nappy_price(price_match.group()):
-                                price = price_match.group()
-                        
-                        # Extract special/discount (avoid JavaScript)
-                        special_elem = (product.select_one('[data-testid="special"]') or
-                                      product.select_one('.special-badge') or
-                                      product.select_one('.was') or
-                                      product.select_one('[class*="special"]'))
-                        
-                        special = "Special Price"
-                        if special_elem:
-                            special_text = special_elem.get_text().strip()
-                            js_indicators = ['function', 'var ', '=>', '{']
-                            if (len(special_text) < 50 and 
-                                not any(js_indicator in special_text for js_indicator in js_indicators)):
-                                special = special_text
-                        
-                        # Extract product URL
-                        link_elem = product.select_one('a[href]')
-                        product_url = base_url
-                        
-                        if link_elem:
-                            href = link_elem.get('href')
-                            if href and href.startswith('/'):
-                                product_url = f"https://www.woolworths.com.au{href}"
-                            elif href and href.startswith('http'):
-                                product_url = href
-                        
-                        deals.append({
-                            'store': 'Woolworths',
-                            'product': product_name[:100],
-                            'price': price,
-                            'special': special,
-                            'url': product_url
-                        })
-                        
-                        print(f"    ✅ Extracted clean Woolworths deal: {price} - {product_name[:40]}...")
-            
-            except Exception as e:
-                print(f"    ❌ Error extracting Woolworths product {i}: {e}")
-                continue
-        
-        # If no specific products found, try text-based extraction (avoiding JavaScript)
-        if not deals:
-            print("    🔍 Trying text-based extraction for Woolworths...")
-            
-            # Get clean text content without JavaScript
-            clean_text = soup.get_text()
-            lines = clean_text.split('\n')
-            
-            for line in lines:
-                line = line.strip()
-                js_indicators = ['function', 'var ', '=>', '{', 'defineProperty']
-                if (any(keyword in line.lower() for keyword in nappy_keywords) and 
-                    '$' in line and 
-                    len(line) > 10 and len(line) < 200 and
-                    not any(js_indicator in line for js_indicator in js_indicators)):
-                    
-                    price_match = re.search(r'\$\d+\.\d{2}', line)
-                    if price_match and is_valid_nappy_price(price_match.group()):
-                        deals.append({
-                            'store': 'Woolworths',
-                            'product': line[:80],
-                            'price': price_match.group(),
-                            'special': 'Special Deal',
-                            'url': base_url
-                        })
-                        
-                        print(f"    ✅ Text-extracted Woolworths deal: {price_match.group()}")
-                        
-                        if len(deals) >= 3:  # Limit to 3 deals
-                            break
-        
-        # Final fallback - generic entry if nappy content detected
-        if not deals:
-            page_text = soup.get_text().lower()
-            if any(keyword in page_text for keyword in nappy_keywords):
-                deals.append({
-                    'store': 'Woolworths',
-                    'product': 'Nappies available - Check website for current specials',
-                    'price': 'Various prices',
-                    'special': 'Check online for current deals',
-                    'url': base_url
-                })
-                print("    ✅ Added generic Woolworths nappy entry")
-    
-    except Exception as e:
-        print(f"    ❌ Error extracting Woolworths deals: {e}")
-    
-    return deals
 
-async def get_woolworths_deals():
-    """Get Woolworths deals with crawl4ai"""
-    print("🕷️ Scraping Woolworths with crawl4ai...")
-    deals = []
-    
-    try:
-        async with AsyncWebCrawler(verbose=False) as crawler:
-            
-            woolworths_urls = [
-                "https://www.woolworths.com.au/shop/browse/baby/nappies-pants",
-                "https://www.woolworths.com.au/shop/browse/baby/nappies-pants?specials=true"
-            ]
-            
-            for url in woolworths_urls:
-                print(f"  🎯 Trying: {url}")
-                
-                try:
-                    # Simplified crawl4ai for Woolworths
-                    result = await crawler.arun(
-                        url=url,
-                        word_count_threshold=10,
-                        bypass_cache=True,
-                        js_code=[
-                            "window.scrollTo(0, document.body.scrollHeight);",
-                            "await new Promise(resolve => setTimeout(resolve, 2000));"
-                        ]
-                    )
-                    
-                    print(f"  📄 Content length: {len(result.html)} characters")
-                    
-                    if "woolworths" in result.html.lower():
-                        # Extract deals using similar logic to Coles
-                        extracted_deals = extract_woolworths_deals(result.html, getattr(result, 'extracted_content', None), url)
-                        
-                        if extracted_deals:
-                            print(f"  ✅ Found {len(extracted_deals)} Woolworths deals!")
-                            deals.extend(extracted_deals)
-                            break
-                        else:
-                            print("  ❌ No specific deals found")
-                    else:
-                        print("  ❌ Woolworths content not detected")
-                    
-                except Exception as e:
-                    print(f"  ❌ Error crawling {url}: {e}")
-                    continue
-    
-    except Exception as e:
-        print(f"  ❌ Woolworths crawl error: {e}")
-    
-    return deals
 
 def send_email_notification(deals):
     """Send email with today's deals"""
@@ -572,8 +360,8 @@ def send_email_notification(deals):
         print("No email password set - skipping email notification")
         return
     
-    subject = f"🕷️ {len(deals)} Nappy Deals Found with crawl4ai! - {datetime.now().strftime('%d/%m/%Y')}"
-    body = f"Found {len(deals)} nappy deals using robots.txt compliant scraping:\n\n"
+    subject = f"🕷️ {len(deals)} Coles Nappy Deals Found! - {datetime.now().strftime('%d/%m/%Y')}"
+    body = f"Found {len(deals)} nappy deals from Coles using compliant scraping:\n\n"
     
     for i, deal in enumerate(deals, 1):
         body += f"{i}. 🏪 {deal['store']}\n"
@@ -609,7 +397,7 @@ def save_deals_to_file(deals):
         'total_deals': len(deals),
         'deals': deals,
         'last_check': datetime.now().strftime('%Y-%m-%d %H:%M:%S AEST'),
-        'method': 'robots.txt compliant scraping + official sitemaps'
+        'method': 'Coles-only robots.txt compliant scraping + official sitemaps'
     }
     
     with open('docs/latest_deals.json', 'w') as f:
@@ -618,24 +406,19 @@ def save_deals_to_file(deals):
     print(f"✅ Saved {len(deals)} deals to website")
 
 async def main():
-    """Main async function - robots.txt compliant scraping"""
+    """Main async function - Coles only (most compliant)"""
     print("=" * 80)
-    print(f"🕷️ ROBOTS.TXT COMPLIANT SCRAPING - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("⚖️ Using only URLs allowed by store robots.txt files")
+    print(f"🕷️ COMPLIANT SCRAPING - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("⚖️ Using only robots.txt compliant methods for Coles")
+    print("❌ Woolworths removed due to aggressive anti-scraping measures")
     print("=" * 80)
     
     all_deals = []
     
-    # Check Coles and Woolworths using compliant methods
+    # Check only Coles using compliant methods
     print("\n🏪 Checking Coles (robots.txt compliant)...")
     coles_deals = await get_coles_deals()
     all_deals.extend(coles_deals)
-    
-    await asyncio.sleep(3)  # Be respectful between requests
-    
-    print("\n🏪 Checking Woolworths...")
-    woolworths_deals = await get_woolworths_deals()
-    all_deals.extend(woolworths_deals)
     
     print("=" * 80)
     print(f"📊 FINAL RESULTS: Found {len(all_deals)} deals using compliant methods")
@@ -653,9 +436,9 @@ async def main():
         save_deals_to_file([])
         print("😔 No deals found using compliant methods")
         print("💡 This could mean:")
-        print("   - No deals currently exist")
-        print("   - Compliant pages don't show special pricing")
-        print("   - Need to check official catalogues manually")
+        print("   - No deals currently exist at Coles")
+        print("   - Browse pages don't show special pricing")
+        print("   - Check official Coles catalogues manually")
     
     print("=" * 80)
     print("✅ Compliant scraping complete!")
